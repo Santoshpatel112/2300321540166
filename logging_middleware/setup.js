@@ -35,32 +35,30 @@ function upsertEnvValue(filePath, key, value) {
 
 async function setup() {
     const userData = {
-        email: 'santosh.23b1541113@abes.ac.in', 
+        email: 'santosh.23b1540.dev@abes.ac.in', 
         name: 'Santosh Patel',
-        rollNo: '2300321540166', 
+        rollNo: '2300321540', 
         githubUsername: 'Santoshpatel112',
         accessCode: 'cXuqht' 
     };
 
     try {
+        console.log('--- Attempting Registration ---');
         let clientID, clientSecret;
 
         try {
             const regResult = await register(userData);
             console.log('REGISTRATION SUCCESSFUL!');
-            console.log('ClientID:', regResult.clientID);
-            console.log('ClientSecret:', regResult.clientSecret);
+            console.log('Your ClientID:', regResult.clientID);
+            console.log('Your ClientSecret:', regResult.clientSecret);
             clientID = regResult.clientID;
             clientSecret = regResult.clientSecret;
         } catch (err) {
-            console.log('Registration Failed/Already Done:', err.response ? err.response.data.message : err.message);
-            console.log('Using IDs from code...');
-            // PASTE YOUR REAL IDs BELOW IF REGISTRATION ALREADY HAPPENED
-            clientID = 'd3cb0b93-6a27-44a5-8d59-8b1befa816da'; 
-            clientSecret = 'TVJaaaMBSekcRXwM'; 
+            console.error('Registration failed:', err.response ? err.response.data.message : err.message);
+            return;
         }
 
-        
+        console.log('--- Attempting Authentication ---');
         const authResponse = await getAuthToken({
             ...userData,
             clientID,
