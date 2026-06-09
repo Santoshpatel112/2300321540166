@@ -32,7 +32,7 @@ app.get("/notifications/priority/:userId", async (req, res) => {
         const { userId } = req.params;
         const limit = parseInt(req.query.limit) || 10;
 
-        // 1. Fetch from external Test Server API
+      
         let externalNotifications = [];
         try {
             const response = await axios.get(`http://4.224.186.213/evaluation-service/notifications`, {
@@ -45,12 +45,11 @@ app.get("/notifications/priority/:userId", async (req, res) => {
             console.error("External API fetch failed, falling back to local data only.");
         }
 
-        // 2. Filter local and external for the specific user
+        
         const userLocal = localNotifications.filter(n => String(n.userId) === String(userId));
         const combined = [...userLocal, ...externalNotifications];
 
-        // 3. Apply Priority Logic: Score = (Weight) * (Recency Factor)
-        // Since we don't have a complex decay function, we sort by Weight first, then Timestamp
+
         const scored = combined.map(n => {
             const weight = PRIORITY_WEIGHTS[n.type] || 0;
             const timestamp = new Date(n.timestamp || n.createdAt || n.Timestamp).getTime();
