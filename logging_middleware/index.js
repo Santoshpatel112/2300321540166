@@ -5,13 +5,16 @@ require("dotenv").config({ path: require('path').resolve(__dirname, '../vehicle_
 const LOG_API_URL =
   process.env.LOG_API_URL || "http://4.224.186.213/evaluation-service/logs";
 
-async function log(stack,level,pkg,message) {
-  const token=process.env.LOG_AUTH_TOKEN||process.env.log_auth_token;
+async function log(stack, level, pkg, message) {
+  const token = process.env.LOG_AUTH_TOKEN || process.env.log_auth_token;
 
   if (!token) {
     console.warn("Logging Middleware: LOG_AUTH_TOKEN is missing.");
     return null;
   }
+
+  // API enforces a 48-character limit on message
+  const safeMessage = String(message).substring(0, 48);
 
   try {
     const response = await axios.post(
@@ -20,7 +23,7 @@ async function log(stack,level,pkg,message) {
         stack,
         level,
         package: pkg,
-        message,
+        message: safeMessage,
       },
       {
         headers: {

@@ -4,22 +4,20 @@ const path = require('path');
 
 const BASE_URL = 'http://4.224.186.213/evaluation-service';
 
+
+const SKIP_REGISTRATION = false;
+const EXISTING_CLIENT_ID = '';      
+const EXISTING_CLIENT_SECRET = '';  
+// ─────────────────────────────────────────────────────────────────────────────
+
 async function register(data) {
-    try {
-        const response = await axios.post(`${BASE_URL}/register`, data);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+    const response = await axios.post(`${BASE_URL}/register`, data);
+    return response.data;
 }
 
 async function getAuthToken(data) {
-    try {
-        const response = await axios.post(`${BASE_URL}/auth`, data);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
+    const response = await axios.post(`${BASE_URL}/auth`, data);
+    return response.data;
 }
 
 function upsertEnvValue(filePath, key, value) {
@@ -35,27 +33,40 @@ function upsertEnvValue(filePath, key, value) {
 
 async function setup() {
     const userData = {
-        email: 'santosh.23b1540.dev@abes.ac.in', 
+        email: 'santosh.23b1540.dev@abes.ac.in',
         name: 'Santosh Patel',
-        rollNo: '2300321540', 
+        rollNo: '2300321540',
+        mobileNo: '8467941850',
         githubUsername: 'Santoshpatel112',
-        accessCode: 'cXuqht' 
+        accessCode: 'cXuqht'
     };
 
     try {
-        console.log('--- Attempting Registration ---');
         let clientID, clientSecret;
 
-        try {
-            const regResult = await register(userData);
-            console.log('REGISTRATION SUCCESSFUL!');
-            console.log('Your ClientID:', regResult.clientID);
-            console.log('Your ClientSecret:', regResult.clientSecret);
-            clientID = regResult.clientID;
-            clientSecret = regResult.clientSecret;
-        } catch (err) {
-            console.error('Registration failed:', err.response ? err.response.data.message : err.message);
-            return;
+        if (SKIP_REGISTRATION && EXISTING_CLIENT_ID && EXISTING_CLIENT_SECRET) {
+            clientID = EXISTING_CLIENT_ID;
+            clientSecret = EXISTING_CLIENT_SECRET;
+            console.log('--- Using existing credentials (skipping registration) ---');
+        } else {
+            console.log('--- Attempting Registration ---');
+            try {
+                const regResult = await register(userData);
+                console.log('REGISTRATION SUCCESSFUL!');
+                console.log('Your ClientID:', regResult.clientID);
+                console.log('Your ClientSecret:', regResult.clientSecret);
+                clientID = regResult.clientID;
+                clientSecret = regResult.clientSecret;
+            } catch (err) {
+                const msg = err.response
+                    ? JSON.stringify(err.response.data)
+                    : err.message;
+                console.error('Registration failed:', msg);
+                console.log('\n>>> If already registered, paste your clientID and clientSecret');
+                console.log('>>> into EXISTING_CLIENT_ID / EXISTING_CLIENT_SECRET above,');
+                console.log('>>> set SKIP_REGISTRATION = true, then run: node setup.js\n');
+                return;
+            }
         }
 
         console.log('--- Attempting Authentication ---');
@@ -67,18 +78,22 @@ async function setup() {
 
         const token = authResponse.access_token;
         console.log('AUTHENTICATION SUCCESSFUL!');
+        console.log('Token:', token.substring(0, 40) + '...');
 
-        const paths = [
+        const envPaths = [
             path.join(__dirname, '.env'),
             path.join(__dirname, '..', 'vehicle_maintenance_scheduler', '.env'),
             path.join(__dirname, '..', 'notification_app_be', '.env')
         ];
 
-        paths.forEach(p => upsertEnvValue(p, 'LOG_AUTH_TOKEN', token));
+        envPaths.forEach(p => upsertEnvValue(p, 'LOG_AUTH_TOKEN', token));
         console.log('SUCCESS: Token saved to all .env files');
 
     } catch (error) {
-        console.error('ERROR:', error.response ? error.response.data.message : error.message);
+        const msg = error.response
+            ? JSON.stringify(error.response.data)
+            : error.message;
+        console.error('ERROR:', msg);
     }
 }
 
