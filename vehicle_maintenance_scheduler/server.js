@@ -166,6 +166,6 @@ app.listen(PORT, async () => {
     "backend",
     "info",
     "service",
-    `Vehicle maintenance scheduler started on port ${PORT}`
+    `Scheduler started on port ${PORT}`
   );
 });

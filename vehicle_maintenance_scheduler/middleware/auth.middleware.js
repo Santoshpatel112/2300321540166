@@ -1,15 +1,18 @@
-import jwt from "jsonwebtoken";
+const jwt = require("jsonwebtoken");
 
-const Auth=(req,res,next)=>{
-    const token=req.header.authorization;
-    if(!token){
-        return res.status(401).json({message : "UnAuthorize"});
+const Auth = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ message: "Unauthorized" });
     }
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader;
     try {
-        const decode=jwt.verify(token,process.env.Secrate);
-        req.user=decode
+        const decode = jwt.verify(token, process.env.SECRET || "secret");
+        req.user = decode;
         next();
     } catch (error) {
-        return res.status(500).json({message:error.message});
+        return res.status(401).json({ message: error.message });
     }
-}
+};
+
+module.exports = Auth;

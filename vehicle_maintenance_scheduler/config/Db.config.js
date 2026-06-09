@@ -1,14 +1,17 @@
-import mongoose  from "mongoose";
+const mongoose = require("mongoose");
 
-const DbConnect=async ()=>{
+const DbConnect = async () => {
     try {
-        const db=process.env.MONGO_URI;
-        if(!db){
-            return resizeBy.status(400).json({message :"MONGOURI not found"});
+        const db = process.env.MONGO_URI;
+        if (!db) {
+            throw new Error("MONGO_URI not found in environment variables");
         }
         await mongoose.connect(db);
-        console.log("Db Connected Sucessfully");
+        console.log("DB Connected Successfully");
     } catch (error) {
-        return resizeBy.status(500).json({message :error.message});
+        console.error("DB Connection Error:", error.message);
+        process.exit(1);
     }
-}
+};
+
+module.exports = DbConnect;
